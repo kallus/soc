@@ -13,10 +13,10 @@ while [[ $# -gt 0 ]] ; do
   key="$1"
   case $key in
     -n)
-      sortcmd="sort -k 4 -h"
+      sortcmd="sort -k 4"
       ;;
     -t)
-      sortcmd="sort -k 1,2 -h"
+      sortcmd="sort -k 1,2"
       ;;
     -s)
       sortcmd="sort -k 3 -h"
@@ -25,11 +25,11 @@ while [[ $# -gt 0 ]] ; do
       reverse=" -r"
       ;;
     -nr|-rn)
-      sortcmd="sort -k 4 -h"
+      sortcmd="sort -k 4"
       reverse=" -r"
       ;;
     -tr|-rt)
-      sortcmd="sort -k 1,2 -h"
+      sortcmd="sort -k 1,2"
       reverse=" -r"
       ;;
     -sr|-rs)
@@ -41,6 +41,10 @@ while [[ $# -gt 0 ]] ; do
   esac
   shift
 done
+
+if [ "$sortcmd" == "cat" -a "$reverse" == " -r" ] ; then
+  sortcmd="sort -k 4"
+fi
 
 aws s3 ls s3://$bucket | while read line ; do
   inner=$(echo $line | tr -s " " " " | cut -d " " -f 4 | tr "-" "\n" | base64 -d)
