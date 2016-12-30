@@ -1,0 +1,31 @@
+#! /bin/bash
+
+sgpg=$(sed '1q;d' ~/.soc)
+lgpg=$(sed '2q;d' ~/.soc)
+bucket=$(sed '3q;d' ~/.soc)
+
+if [ "$#" -ne 1 -a "$#" -ne 2 ]; then
+  echo "Illegal number of parameters"
+  exit 1
+fi
+
+if [ "$#" -eq 1 ]; then
+  outfile=`basename "$1"`
+else
+  outfile="$2"
+fi
+
+pre="-----BEGIN PGP MESSAGE-----"
+post="-----END PGP MESSAGE-----"
+
+encname=$(aws s3 ls s3://$bucket | while read line ; do
+  encname=$(echo $line | tr -s " " " " | cut -d " " -f 4)
+  inner=$(echo $encname | tr "-" "\n" | base64 -d)
+  clearname=$(echo $pre$'\n\n'$inner$'\n'$post | gpg --decrypt -q)
+  if [ "$clearname" == "$1" ] ; then
+    echo $encname
+    break
+  fi
+done)
+
+aws s3 cp s3://$bucket/$encname - | gpg -q --decrypt -o "$outfile"

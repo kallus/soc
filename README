@@ -1,0 +1,13 @@
+A program for storing files privately on Amazon S3
+
+Soc encrypts not only the content but also the name of files before uploading to S3. Four commands are supported: socls, socput, socget and socrm.
+
+Soc depends on Amazons command line tools (command aws, apt-package awscli). Run aws to configure it. Your private and public Amazon aws keys will be needed.
+
+Configure soc by creating the file ~/.soc containing three lines. First line is the identifier of your short gpg key used to encrypt file names. This key needs to be only 1024 bytes, otherwise encrypted file names will be too long. The second line is the identifier of your gpg key for encrypting file contents. The third line is the name of the S3 bucket that should be used for soc files.
+
+socget supports streaming directly into e.g. a video player.
+
+TODO:
+Documentation for each command.
+Add support in socget for files that have been moved to Glacier. That would allow for setting a policy for the soc bucket to move files quickly to Glacier when uploaded.

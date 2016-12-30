@@ -1,0 +1,50 @@
+#! /bin/bash
+sgpg=$(sed '1q;d' ~/.soc)
+lgpg=$(sed '2q;d' ~/.soc)
+bucket=$(sed '3q;d' ~/.soc)
+
+pre="-----BEGIN PGP MESSAGE-----"
+post="-----END PGP MESSAGE-----"
+
+sortcmd="cat"
+reverse=""
+
+while [[ $# -gt 0 ]] ; do
+  key="$1"
+  case $key in
+    -n)
+      sortcmd="sort -k 4 -h"
+      ;;
+    -t)
+      sortcmd="sort -k 1,2 -h"
+      ;;
+    -s)
+      sortcmd="sort -k 3 -h"
+      ;;
+    -r)
+      reverse=" -r"
+      ;;
+    -nr|-rn)
+      sortcmd="sort -k 4 -h"
+      reverse=" -r"
+      ;;
+    -tr|-rt)
+      sortcmd="sort -k 1,2 -h"
+      reverse=" -r"
+      ;;
+    -sr|-rs)
+      sortcmd="sort -k 3 -h"
+      reverse=" -r"
+      ;;
+    *)
+      ;;
+  esac
+  shift
+done
+
+aws s3 ls s3://$bucket | while read line ; do
+  inner=$(echo $line | tr -s " " " " | cut -d " " -f 4 | tr "-" "\n" | base64 -d)
+  echo $line | tr -s " " " " | cut -d " " -f -3 | head -c -1 | tr " " "\t"
+  echo -n "	"
+  echo $pre$'\n\n'$inner$'\n'$post | gpg --decrypt -q
+done | numfmt --to=iec --field 3 -d "	" | column -t -s "	" | $sortcmd$reverse

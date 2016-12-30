@@ -1,0 +1,27 @@
+#! /bin/bash
+
+sgpg=$(sed '1q;d' ~/.soc)
+lgpg=$(sed '2q;d' ~/.soc)
+bucket=$(sed '3q;d' ~/.soc)
+
+if [ "$#" -ne 1 -a "$#" -ne 2 ]; then
+  echo "Illegal number of parameters"
+  exit 1
+fi
+
+if [ "$#" -eq 1 ]; then
+  clearname=`basename "$1"`
+else
+  if [ "${2: -1}" == "/" ]; then
+    bname=`basename "$1"`
+    clearname=$2$bname
+  else
+    clearname=$2
+  fi
+fi
+
+echo "Putting local file \"$1\" to S3 named \"$clearname\""
+
+tname=`echo "$clearname" | gpg --encrypt -r $sgpg -a | head -n -1 | tail -n +3 | base64 | head -c -1 | tr "\n" "-"`
+
+pv "$1" | gpg --encrypt -o - -r $lgpg | aws s3 cp - s3://$bucket/$tname

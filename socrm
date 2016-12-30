@@ -1,0 +1,23 @@
+#! /bin/bash
+
+sgpg=$(sed '1q;d' ~/.soc)
+lgpg=$(sed '2q;d' ~/.soc)
+bucket=$(sed '3q;d' ~/.soc)
+
+if [ "$#" -ne 1 ]; then
+  echo "Illegal number of parameters"
+  exit 1
+fi
+
+pre="-----BEGIN PGP MESSAGE-----"
+post="-----END PGP MESSAGE-----"
+
+aws s3 ls s3://$bucket | while read line ; do
+  encname=$(echo $line | tr -s " " " " | cut -d " " -f 4)
+  inner=$(echo $encname | tr "-" "\n" | base64 -d)
+  clearname=$(echo $pre$'\n\n'$inner$'\n'$post | gpg --decrypt -q)
+  if [ "$clearname" == "$1" ] ; then
+    aws s3 rm s3://$bucket/$encname
+    break
+  fi
+done
