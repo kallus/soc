@@ -3,9 +3,6 @@ sgpg=$(sed '1q;d' ~/.soc)
 lgpg=$(sed '2q;d' ~/.soc)
 bucket=$(sed '3q;d' ~/.soc)
 
-pre="-----BEGIN PGP MESSAGE-----"
-post="-----END PGP MESSAGE-----"
-
 sortcmd="cat"
 reverse=""
 

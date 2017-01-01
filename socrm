@@ -9,9 +9,6 @@ if [ "$#" -ne 1 ]; then
   exit 1
 fi
 
-pre="-----BEGIN PGP MESSAGE-----"
-post="-----END PGP MESSAGE-----"
-
 aws s3 ls s3://$bucket | while read line ; do
   encname=$(echo $line | tr -s " " " " | cut -d " " -f 4)
   clearname=$(echo $encname | base32 -d | gpg -q --decrypt)
