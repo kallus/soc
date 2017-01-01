@@ -14,8 +14,7 @@ post="-----END PGP MESSAGE-----"
 
 aws s3 ls s3://$bucket | while read line ; do
   encname=$(echo $line | tr -s " " " " | cut -d " " -f 4)
-  inner=$(echo $encname | tr "-" "\n" | base64 -d)
-  clearname=$(echo $pre$'\n\n'$inner$'\n'$post | gpg --decrypt -q)
+  clearname=$(echo $encname | base32 -d | gpg -q --decrypt)
   if [ "$clearname" == "$1" ] ; then
     aws s3 rm s3://$bucket/$encname
     break

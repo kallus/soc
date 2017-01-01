@@ -22,6 +22,6 @@ fi
 
 echo "Putting local file \"$1\" to S3 named \"$clearname\""
 
-tname=`echo "$clearname" | gpg --encrypt -r $sgpg -a | head -n -1 | tail -n +3 | base64 | head -c -1 | tr "\n" "-"`
+tname=`echo "$clearname" | gpg --encrypt -r $sgpg | base32 -w 0`
 
 pv "$1" | gpg --encrypt -o - -r $lgpg | aws s3 cp - s3://$bucket/$tname

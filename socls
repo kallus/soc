@@ -47,8 +47,8 @@ if [ "$sortcmd" == "cat" -a "$reverse" == " -r" ] ; then
 fi
 
 aws s3 ls s3://$bucket | while read line ; do
-  inner=$(echo $line | tr -s " " " " | cut -d " " -f 4 | tr "-" "\n" | base64 -d)
+  encname=$(echo $line | tr -s " " " " | cut -d " " -f 4)
   echo $line | tr -s " " " " | cut -d " " -f -3 | head -c -1 | tr " " "\t"
   echo -n "	"
-  echo $pre$'\n\n'$inner$'\n'$post | gpg --decrypt -q
+  echo $encname | base32 -d | gpg -q --decrypt
 done | numfmt --to=iec --field 3 -d "	" | column -t -s "	" | $sortcmd$reverse
