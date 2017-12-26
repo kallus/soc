@@ -11,3 +11,4 @@ socget supports streaming directly into e.g. a video player.
 TODO:
 Documentation for each command.
 Add support in socget for files that have been moved to Glacier. That would allow for setting a policy for the soc bucket to move files quickly to Glacier when uploaded.
+Add a simple test: create file locally, upload file, check listed by ls, download and verify, remove from s3, remove locally
