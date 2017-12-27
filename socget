@@ -1,20 +1,25 @@
 #! /bin/bash
 
+# look up config
 sgpg=$(sed '1q;d' ~/.soc)
 lgpg=$(sed '2q;d' ~/.soc)
 bucket=$(sed '3q;d' ~/.soc)
 
+# must be one or two arguments
 if [ "$#" -ne 1 -a "$#" -ne 2 ]; then
   echo "Illegal number of parameters"
   exit 1
 fi
 
+# if only one arg use the non-path part of arg one
+# otherwise use arg to as name of produced file
 if [ "$#" -eq 1 ]; then
   outfile=`basename "$1"`
 else
   outfile="$2"
 fi
 
+# find encoded name that matches first arg
 encname=$(aws s3 ls s3://$bucket | while read line ; do
   encname=$(echo $line | tr -s " " " " | cut -d " " -f 4)
   clearname=$(echo $encname | base32 -d | gpg -q --decrypt)
@@ -24,4 +29,9 @@ encname=$(aws s3 ls s3://$bucket | while read line ; do
   fi
 done)
 
-aws s3 cp s3://$bucket/$encname - | gpg -q --decrypt -o "$outfile"
+# if filename ends with .tar extract the tar
+if [ ${1: -4} == ".tar" ]; then
+  aws s3 cp s3://$bucket/$encname - | gpg -q --decrypt -o - | tar xf -
+else
+  aws s3 cp s3://$bucket/$encname - | gpg -q --decrypt -o "$outfile"
+fi

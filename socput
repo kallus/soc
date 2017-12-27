@@ -1,14 +1,26 @@
 #! /bin/bash
 
+# look up config
 sgpg=$(sed '1q;d' ~/.soc)
 lgpg=$(sed '2q;d' ~/.soc)
 bucket=$(sed '3q;d' ~/.soc)
 
+# must be one or two arguments
 if [ "$#" -ne 1 -a "$#" -ne 2 ]; then
   echo "Illegal number of parameters"
   exit 1
 fi
 
+# first argument must not end with /
+if [ "${1: -1}" == "/" ]; then
+  echo "First argument is not allowed to end with '/'"
+  exit 1
+fi
+
+# if one argument the name on amazon is the local filename without path
+# otherwise if the second argument ends with \ the name on amazon is the second
+#     argument followed by the basename
+#   otherwise the second argument is the name on amazon
 if [ "$#" -eq 1 ]; then
   clearname=`basename "$1"`
 else
@@ -20,8 +32,20 @@ else
   fi
 fi
 
+# if the first argument is a folder: tar it and make name end with .tar
+
+if [ -d "$1" ]; then
+  clearname=$clearname.tar
+fi
+
 echo "Putting local file \"$1\" to S3 named \"$clearname\""
 
+# encrypting the name to use on amazon
 tname=`echo "$clearname" | gpg --encrypt -r $sgpg | base32 -w 0`
 
-pv "$1" | gpg --encrypt -o - -r $lgpg | aws s3 cp - s3://$bucket/$tname
+if [ -d "$1" ]; then
+  tar cf - "$1" | pv -s $(du -sb "$1" | awk '{print $1}') | \
+    gpg --encrypt -o - -r $lgpg | aws s3 cp - s3://$bucket/$tname
+else
+  pv "$1" | gpg --encrypt -o - -r $lgpg | aws s3 cp - s3://$bucket/$tname
+fi
