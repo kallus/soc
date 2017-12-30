@@ -2,4 +2,8 @@
 
 # the total is approximate
 
-socls | cut -f 5 -d ' ' | awk '/[0-9]$/{print $1;next};/[mM]$/{printf "%u\n", $1*(1024*1024);next};/[kK]$/{printf "%u\n", $1*1024;next}' | awk '{ sum += $1 } END { print sum }' | numfmt --to=iec
+socls | cut -f 5 -d ' ' | awk '/[0-9]$/{print $1;next};
+  /[tT]$/{printf "%u\n", $1*(1024*1024*1024*1024);next};
+  /[gG]$/{printf "%u\n", $1*(1024*1024*1024);next};
+  /[mM]$/{printf "%u\n", $1*(1024*1024);next};
+  /[kK]$/{printf "%u\n", $1*1024;next}' | awk '{ sum += $1 } END { print sum }' | numfmt --to=iec
