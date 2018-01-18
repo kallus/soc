@@ -1,0 +1,25 @@
+#! /bin/bash
+
+# look up config
+sgpg=$(sed '1q;d' ~/.soc)
+lgpg=$(sed '2q;d' ~/.soc)
+bucket=$(sed '3q;d' ~/.soc)
+
+# must be two arguments: file and days to keep it available
+if [ "$#" -ne 2 ]; then
+  echo "Illegal number of parameters: socrestore <file> <days>"
+  exit 1
+fi
+
+# find encoded name that matches first arg
+encname=$(aws s3 ls s3://$bucket | while read line ; do
+  encname=$(echo $line | tr -s " " " " | cut -d " " -f 4)
+  clearname=$(echo $encname | base32 -d | gpg -q --decrypt)
+  if [ "$clearname" == "$1" ] ; then
+    echo $encname
+    break
+  fi
+done)
+
+aws s3api restore-object --bucket "$bucket" --key "$encname" \
+  --restore-request Days=$2
