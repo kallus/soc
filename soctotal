@@ -1,9 +1,6 @@
 #! /bin/bash
 
-# the total is approximate
+bucket=$(sed '3q;d' ~/.soc)
 
-socls | cut -f 5 -d ' ' | awk '/[0-9]$/{print $1;next};
-  /[tT]$/{printf "%u\n", $1*(1024*1024*1024*1024);next};
-  /[gG]$/{printf "%u\n", $1*(1024*1024*1024);next};
-  /[mM]$/{printf "%u\n", $1*(1024*1024);next};
-  /[kK]$/{printf "%u\n", $1*1024;next}' | awk '{ sum += $1 } END { print sum }' | numfmt --to=iec
+aws s3 ls s3://$bucket | tr -s ' ' | cut -f 3 -d ' ' \
+  | awk '{ sum += $1 } END { print sum }' | numfmt --to=iec
