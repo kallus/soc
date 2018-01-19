@@ -2,5 +2,4 @@
 
 bucket=$(sed '3q;d' ~/.soc)
 
-aws s3 ls s3://$bucket | tr -s ' ' | cut -f 3 -d ' ' \
-  | awk '{ sum += $1 } END { print sum }' | numfmt --to=iec
+aws s3 ls s3://$bucket | awk '{ sum += $3 } END { print sum }' | numfmt --to=iec
